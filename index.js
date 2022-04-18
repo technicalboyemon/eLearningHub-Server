@@ -37,12 +37,12 @@ async function run() {
     });
 
     // GET SINGLE API - For USER
-    app.get("/users/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const users = await usersCollection.findOne(query);
-      res.json(users);
-    });
+    // app.get("/user/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: ObjectId(id) };
+    //   const users = await usersCollection.findOne(query);
+    //   res.json(users);
+    // });
 
     // Get Single API - Filter By Email [USER]
     app.get("/users/account", async (req, res) => {
@@ -67,9 +67,9 @@ async function run() {
           name: updatedUser.name,
           phone: updatedUser.phone,
           about: updatedUser.about,
-          phone: updatedUser.photo,
-          phone: updatedUser.national,
-          phone: updatedUser.profession,
+          photo: updatedUser.photo,
+          national: updatedUser.national,
+          profession: updatedUser.profession,
         },
       };
       const result = await usersCollection.updateOne(
