@@ -5,6 +5,7 @@ const ObjectId = require("mongodb").ObjectId;
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
 
+
 app.use(cors());
 app.use(express.json());
 require("dotenv").config();
@@ -21,6 +22,10 @@ async function run() {
     await client.connect();
     const database = client.db("eLearning");
     const usersCollection = database.collection("users");
+    const coursesCollection = database.collection("courses");
+    const orderCollection = database.collection("order");
+
+    // ===================== USER API ========================
 
     // POST API - For USER
     app.post("/users", async (req, res) => {
@@ -37,6 +42,7 @@ async function run() {
     });
 
     // GET SINGLE API - For USER
+
     // app.get("/user/:id", async (req, res) => {
     //   const id = req.params.id;
     //   const query = { _id: ObjectId(id) };
@@ -52,6 +58,13 @@ async function run() {
         query = { email: email };
       }
       const cursor = usersCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    // Get Single API - Filter By Email [Instructor]
+    app.get("/users/instructor", async (req, res) => {
+      const cursor = usersCollection.find({ isInstructor: true });
       const result = await cursor.toArray();
       res.json(result);
     });
@@ -87,6 +100,63 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.json(result);
     });
+
+    // ===================== COURSE API ========================
+
+    // POST API - For Course
+    app.post("/courses", async (req, res) => {
+      const newUser = req.body;
+      const result = await coursesCollection.insertOne(newUser);
+      res.json(result);
+    });
+
+    // GET API - For Course
+    app.get("/courses", async (req, res) => {
+      const users = coursesCollection.find({});
+      const result = await users.toArray();
+      res.json(result);
+    });
+
+    // GET SINGLE API - For Course
+    app.get("/courses/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const users = await coursesCollection.findOne(query);
+      res.json(users);
+    });
+
+    //DELETE API - Course
+    app.delete("/courses/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await coursesCollection.deleteOne(query);
+      res.json(result);
+    });
+
+    // ===================== ORDER API ========================
+
+    // POST API - For ORDER
+    app.post("/order", async (req, res) => {
+      const newUser = req.body;
+      const result = await orderCollection.insertOne(newUser);
+      res.json(result);
+    });
+
+    // GET API - For ORDER
+    app.get("/order", async (req, res) => {
+      const users = orderCollection.find({});
+      const result = await users.toArray();
+      res.json(result);
+    });
+
+    // GET SINGLE API - For ORDER
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const order = await orderCollection.findOne(query);
+      res.json(order);
+    });
+
   } finally {
     // await client.close();
   }
