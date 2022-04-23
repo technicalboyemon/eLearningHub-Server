@@ -49,30 +49,35 @@ async function run() {
     const usersCollection = database.collection("users");
     const coursesCollection = database.collection("courses");
     const orderCollection = database.collection("order");
+    const categoryCollection = database.collection("category");
+    const commentsCollection = database.collection("comments");
 
-    // ===================== USER API ========================
+    // ==============Comment API===================
 
     app.post("/watch/comment", async (req, res) => {
       try {
         const { content, blog_id, blog_user_id, user } = req.body;
-        console.log(req.body);
-        const newComment = new Comments({
-          user: user._id,
+        const data = {
+          user,
           content,
           blog_id,
-          blog_user_id,
-        });
-
-        const data = {
-          ...newComment._doc,
-          user,
-          createdAt: new Date().toISOString(),
         };
+        // io.to(`${blog_id}`).emit("createComment", data);
+        io.emit("createComment", data);
+        const result = await commentsCollection.insertOne(data);
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
 
-        io.to(`${blog_id}`).emit("createComment", data);
-
-        // await newComment.save();
-        const result = await coursesCollection.insertOne(data);
+    app.get("/watch/comment/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const query = { blog_id: id };
+        const blog = await commentsCollection.find(query);
+        const result = await blog.toArray();
         return res.json(result);
       } catch (err) {
         console.log(err);
@@ -88,98 +93,6 @@ async function run() {
       res.json(result);
     });
 
-    app.get("/watch/comment/", async (req, res) => {
-      try {
-        const { id } = req.params;
-        const data = await coursesCollection.aggregate([
-          {
-            $facet: {
-              totalData: [
-                {
-                  $match: {
-                    blog_id: ObjectId(id),
-                    comment_root: { $exists: false },
-                    reply_user: { $exists: false },
-                  },
-                },
-                {
-                  $lookup: {
-                    from: "users",
-                    let: { email: "$user" },
-                    pipeline: [
-                      { $match: { $expr: { $eq: ["$_id", "$$email"] } } },
-                      { $project: { name: 1 } },
-                    ],
-                    as: "user",
-                  },
-                },
-                { $unwind: "$user" },
-                {
-                  $lookup: {
-                    from: "comments",
-                    let: { cm_id: "$replyCM" },
-                    pipeline: [
-                      { $match: { $expr: { $in: ["$_id", "$$cm_id"] } } },
-                      {
-                        $lookup: {
-                          from: "users",
-                          let: { user_id: "$user" },
-                          pipeline: [
-                            {
-                              $match: { $expr: { $eq: ["$_id", "$$user_id"] } },
-                            },
-                            { $project: { name: 1, avatar: 1 } },
-                          ],
-                          as: "user",
-                        },
-                      },
-                      { $unwind: "$user" },
-                      {
-                        $lookup: {
-                          from: "users",
-                          let: { user_id: "$reply_user" },
-                          pipeline: [
-                            {
-                              $match: { $expr: { $eq: ["$_id", "$$user_id"] } },
-                            },
-                            { $project: { name: 1, avatar: 1 } },
-                          ],
-                          as: "reply_user",
-                        },
-                      },
-                      { $unwind: "$reply_user" },
-                    ],
-                    as: "replyCM",
-                  },
-                },
-                { $sort: { createdAt: -1 } },
-              ],
-              totalCount: [
-                {
-                  $match: {
-                    blog_id: ObjectId(id),
-                    comment_root: { $exists: false },
-                    reply_user: { $exists: false },
-                  },
-                },
-                { $count: "count" },
-              ],
-            },
-          },
-          {
-            $project: {
-              count: { $arrayElemAt: ["$totalCount.count", 0] },
-              totalData: 1,
-            },
-          },
-        ]);
-
-        return res.json({ comments });
-      } catch (err) {
-        console.log(err);
-        return res.status(500).json({ msg: err.message });
-      }
-    });
     // POST API - For USER
     app.post("/users", async (req, res) => {
       const newUser = req.body;
@@ -226,6 +139,14 @@ async function run() {
     app.get("/users/student", async (req, res) => {
       const cursor = usersCollection.find({ isStudent: true });
       const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const UpdateDoc = { $set: { isAdmin: true } };
+      const result = await usersCollection.updateOne(filter, UpdateDoc);
       res.json(result);
     });
 
@@ -289,7 +210,6 @@ async function run() {
     app.get("/course/account", async (req, res) => {
       let query = {};
       const email = req.query.email;
-      console.log(email);
       if (email) {
         query = { email: email };
       }
@@ -347,6 +267,36 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
+      res.json(result);
+    });
+
+    // ==================Category========
+
+    // POST API - For category
+    app.post("/category", async (req, res) => {
+      const newUser = req.body;
+      const result = await categoryCollection.insertOne(newUser);
+      res.json(result);
+    });
+    // GET API - For category
+    app.get("/category", async (req, res) => {
+      const users = categoryCollection.find({});
+      const result = await users.toArray();
+      res.json(result);
+    });
+    // GET SINGLE API - For category
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const order = await categoryCollection.findOne(query);
+      res.json(order);
+    });
+
+    //DELETE API - category
+    app.delete("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await categoryCollection.deleteOne(query);
       res.json(result);
     });
   } finally {
