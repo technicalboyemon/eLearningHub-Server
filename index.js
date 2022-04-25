@@ -10,6 +10,8 @@ app.use(cors());
 app.use(express.json());
 require("dotenv").config();
 
+// https://cryptic-temple-44121.herokuapp.com/
+
 // Socket.io
 const http = createServer(app);
 const io = new Server(http, {
@@ -107,15 +109,6 @@ async function run() {
       res.json(result);
     });
 
-    // GET SINGLE API - For USER
-
-    // app.get("/user/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: ObjectId(id) };
-    //   const users = await usersCollection.findOne(query);
-    //   res.json(users);
-    // });
-
     // Get Single API - Filter By Email [USER]
     app.get("/users/account", async (req, res) => {
       let query = {};
@@ -150,6 +143,15 @@ async function run() {
       res.json(result);
     });
 
+    // app.put("/users/profile/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const updatedUser = req.body;
+    //   const filter = { email: user.email };
+    //   const UpdateDoc = { $set: { photo: updatedUser.photo } };
+    //   const result = await usersCollection.updateOne(filter, UpdateDoc);
+    //   res.json(result);
+    // });
+
     // PUT API - Filter By Email [USER]
     app.put("/users/account/:email", async (req, res) => {
       const email = req.params.email;
@@ -161,7 +163,6 @@ async function run() {
           name: updatedUser.name,
           phone: updatedUser.phone,
           about: updatedUser.about,
-          photo: updatedUser.photo,
           national: updatedUser.national,
           profession: updatedUser.profession,
         },
