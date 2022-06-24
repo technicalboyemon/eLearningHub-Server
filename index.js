@@ -53,6 +53,123 @@ async function run() {
     const orderCollection = database.collection("order");
     const categoryCollection = database.collection("category");
     const commentsCollection = database.collection("comments");
+    const quizCollection = database.collection("quiz");
+    const quizSavedCollection = database.collection("quizSaved");
+
+    // ==============Quiz API===================
+    app.post("/quiz/add", async (req, res) => {
+      try {
+        const result = await quizCollection.insertOne(req.body);
+        console.log(result);
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/all", async (req, res) => {
+      try {
+        const quiz = await quizCollection.find({});
+        const result = await quiz.toArray();
+        res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/instructor/:email", async (req, res) => {
+      try {
+        const { email } = req.params;
+        const query = { instructorUid: email };
+        const quiz = await quizCollection.find(query);
+        const result = await quiz.toArray();
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/attend/:email", async (req, res) => {
+      try {
+        const { email } = req.params;
+        const quiz = await quizCollection.find({
+          "showUsers.email": email,
+        });
+        const result = await quiz.toArray();
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/save/:userEmail", async (req, res) => {
+      try {
+        const { userEmail } = req.params;
+        console.log(userEmail);
+        const quiz = await quizSavedCollection.find({
+          user: userEmail,
+        });
+        const result = await quiz.toArray();
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/attended/instructor/:userEmail", async (req, res) => {
+      try {
+        const { userEmail } = req.params;
+        console.log(userEmail);
+        const quiz = await quizSavedCollection.find({
+          instructorUid: userEmail,
+        });
+        const result = await quiz.toArray();
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.get("/quiz/attended", async (req, res) => {
+      try {
+        const quiz = await quizSavedCollection.find({});
+        const result = await quiz.toArray();
+        return res.json(result);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+    app.post("/quiz/save/:userEmail", async (req, res) => {
+      try {
+        const { userEmail } = req.params;
+        console.log(userEmail);
+        const result = await quizSavedCollection.insertOne(req.body);
+        const done = await quizCollection.updateOne(
+          { "showUsers.email": userEmail },
+          { $pull: { showUsers: { email: userEmail } } }
+        );
+        return res.json(done);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+
+    app.patch("/quiz/updateUser/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        console.log(id)
+        const done = await quizCollection.updateOne(
+          { _id: id },
+          { $push: { showUsers: { $each: req.body } } }
+        );
+        return res.json(done);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
 
     // ==============Comment API===================
 
