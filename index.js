@@ -10,6 +10,8 @@ app.use(cors());
 app.use(express.json());
 require("dotenv").config();
 
+const { translate } = require("bing-translate-api");
+
 // https://cryptic-temple-44121.herokuapp.com/
 
 // Socket.io
@@ -56,6 +58,18 @@ async function run() {
     const quizCollection = database.collection("quiz");
     const quizSavedCollection = database.collection("quizSaved");
 
+    app.post("/translate", async (req, res) => {
+      console.log(req.body);
+      translate(req.body.text, null, "ro", true)
+        .then((r) => {
+          console.log(r);
+          res.json(r.translation);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.json({ err: err });
+        });
+    });
     // ==============Quiz API===================
     app.post("/quiz/add", async (req, res) => {
       try {
@@ -159,10 +173,10 @@ async function run() {
     app.patch("/quiz/updateUser/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        console.log(id)
+        console.log(id, req.body);
         const done = await quizCollection.updateOne(
           { _id: id },
-          { $push: { showUsers: { $each: req.body } } }
+          { $push: { showUsers: req.body } }
         );
         return res.json(done);
       } catch (err) {
