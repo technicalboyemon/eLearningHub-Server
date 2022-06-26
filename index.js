@@ -59,7 +59,6 @@ async function run() {
     const quizSavedCollection = database.collection("quizSaved");
 
     app.post("/translate", async (req, res) => {
-      console.log(req.body);
       translate(req.body.text, null, "ro", true)
         .then((r) => {
           console.log(r);
@@ -157,7 +156,6 @@ async function run() {
     app.post("/quiz/save/:userEmail", async (req, res) => {
       try {
         const { userEmail } = req.params;
-        console.log(userEmail);
         const result = await quizSavedCollection.insertOne(req.body);
         const done = await quizCollection.updateOne(
           { "showUsers.email": userEmail },
@@ -173,10 +171,9 @@ async function run() {
     app.patch("/quiz/updateUser/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        console.log(id, req.body);
         const done = await quizCollection.updateOne(
-          { _id: id },
-          { $push: { showUsers: req.body } }
+          { _id: ObjectId(id) },
+          { $addToSet: { showUsers: { $each: req.body } } }
         );
         return res.json(done);
       } catch (err) {
