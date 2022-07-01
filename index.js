@@ -153,15 +153,29 @@ async function run() {
         return res.status(500).json({ msg: err.message });
       }
     });
-    app.post("/quiz/save/:userEmail", async (req, res) => {
+    app.post("/quiz/save/:userEmail/:id", async (req, res) => {
       try {
-        const { userEmail } = req.params;
+        const { userEmail, id } = req.params;
         const result = await quizSavedCollection.insertOne(req.body);
         const done = await quizCollection.updateOne(
-          { "showUsers.email": userEmail },
+          { _id: ObjectId(id) },
           { $pull: { showUsers: { email: userEmail } } }
         );
         return res.json(done);
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: err.message });
+      }
+    });
+
+    app.get("/user/submittedQuiz/:userEmail", async (req, res) => {
+      try {
+        const { userEmail } = req.params;
+        const quiz = await quizSavedCollection.find({
+          user: userEmail,
+        });
+        const result = await quiz.toArray();
+        return res.json(result);
       } catch (err) {
         console.log(err);
         return res.status(500).json({ msg: err.message });
