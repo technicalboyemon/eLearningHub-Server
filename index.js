@@ -26,16 +26,16 @@ const io = new Server(http, {
 io.on("connection", (socket) => {
   socket.on("joinRoom", (id) => {
     socket.join(id);
-    console.log({ joinRoom: socket.adapter.rooms });
+    // console.log({ joinRoom: socket.adapter.rooms });
   });
 
   socket.on("outRoom", (id) => {
     socket.leave(id);
-    console.log({ outRoom: socket.adapter.rooms });
+    // console.log({ outRoom: socket.adapter.rooms });
   });
 
   socket.on("disconnect", () => {
-    console.log(socket.id + " disconnected");
+    // console.log(socket.id + " disconnected");
   });
 });
 
@@ -61,11 +61,11 @@ async function run() {
     app.post("/translate", async (req, res) => {
       translate(req.body.text, null, "ro", true)
         .then((r) => {
-          console.log(r);
+          // console.log(r);
           res.json(r.translation);
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
           res.json({ err: err });
         });
     });
@@ -73,10 +73,10 @@ async function run() {
     app.post("/quiz/add", async (req, res) => {
       try {
         const result = await quizCollection.insertOne(req.body);
-        console.log(result);
+        // console.log(result);
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -86,7 +86,7 @@ async function run() {
         const result = await quiz.toArray();
         res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -98,7 +98,7 @@ async function run() {
         const result = await quiz.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -111,35 +111,35 @@ async function run() {
         const result = await quiz.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
     app.get("/quiz/save/:userEmail", async (req, res) => {
       try {
         const { userEmail } = req.params;
-        console.log(userEmail);
+        // console.log(userEmail);
         const quiz = await quizSavedCollection.find({
           user: userEmail,
         });
         const result = await quiz.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
     app.get("/quiz/attended/instructor/:userEmail", async (req, res) => {
       try {
         const { userEmail } = req.params;
-        console.log(userEmail);
+        // console.log(userEmail);
         const quiz = await quizSavedCollection.find({
           instructorUid: userEmail,
         });
         const result = await quiz.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -149,7 +149,7 @@ async function run() {
         const result = await quiz.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -163,7 +163,7 @@ async function run() {
         );
         return res.json(done);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -191,7 +191,7 @@ async function run() {
         );
         return res.json(done);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -211,7 +211,7 @@ async function run() {
         const result = await commentsCollection.insertOne(data);
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
@@ -224,7 +224,7 @@ async function run() {
         const result = await blog.toArray();
         return res.json(result);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).json({ msg: err.message });
       }
     });
